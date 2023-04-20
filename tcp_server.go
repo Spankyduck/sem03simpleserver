@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"net"
 	"sync"
 
+	"github.com/Spankyduck/is105sem03/mycrypt"
 )
 
 func main() {
@@ -21,7 +23,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for {
-			log.Println("før server.Accept() kallet")
+			log.Println("f  r server.Accept() kallet")
 			conn, err := server.Accept()
 			if err != nil {
 				return
@@ -35,24 +37,26 @@ func main() {
 						if err != io.EOF {
 							log.Println(err)
 						}
-						return // fra for løkke
+						return // fra for l  kke
 					}
 					switch msg := string(buf[:n]); msg {
-  				        case "ping":
+					case "ping":
 						_, err = c.Write([]byte("pong"))
 					default:
-						_, err = c.Write(buf[:n])
+						dekryptertMelding := mycrypt.Krypter([]rune(string(buf[:n])), mycrypt.ALF_SEM03, len(mycrypt.ALF_SEM03)-4)
+						log.Println("Dekrypter melding: ", string(dekryptertMelding))
+						_, err = io.Copy(c, bytes.NewReader([]byte(string(dekryptertMelding))))
 					}
 					if err != nil {
 						if err != io.EOF {
 							log.Println(err)
 						}
-						return // fra for løkkeø
-
-                                       }
+						return // fra for l  kke
+					}
 				}
 			}(conn)
 		}
 	}()
 	wg.Wait()
 }
+
